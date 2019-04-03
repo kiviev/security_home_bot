@@ -1,9 +1,10 @@
 const request = require('request');
 const fs = require('fs-extra');
+const dotEnv = require('dotenv').config({path:'../../.env'});
 //  curl -s -X POST "https://api.telegram.org/bot767345950:AAHt66y5UwVIdGtdq8p4lIAQD8aQcLZtBnY/sendVideo" -F chat_id=148400127 -F video="@/home/pack/.motion/output/cam1/01-20190330144124.mp4" -F thumb="@/home/pack/.motion/output/cam1/CAM1_01-20190330144126-03.jpg" -F caption="Movimiento en casa"
 
 
-let url = "https://api.telegram.org/bot767345950:AAHt66y5UwVIdGtdq8p4lIAQD8aQcLZtBnY/";
+let url = "https://api.telegram.org/bot" + process.env.TG_TOKEN_BOT_HOME_SECURITY + "/";
 
 let action = "sendVideo";
 
@@ -112,6 +113,7 @@ console.log(image_path);
 }
 
 async function sendText(text, chatid = "148400127") {
+  
         let formData = {
           chat_id: chatid
         }
