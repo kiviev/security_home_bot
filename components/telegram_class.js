@@ -1,10 +1,12 @@
 const TelegramBot = require('node-telegram-bot-api');
-const Helpers = require('../helpers')
+const Helpers = require('../helpers');
+const RPiLeds = require('../mods/leds/RPiLeds');
+const SystemStats = require('../mods/system/System');
 
 
 class TelegramService {
-
-    constructor(botname = '') {
+	
+	constructor(botname = '') {
 		if (process.env['TG_TOKEN_BOT_' + botname.toUpperCase()]) {
 			this.bot = new TelegramBot(process.env['TG_TOKEN_BOT_' + botname.toUpperCase()], {
 				polling: true
@@ -12,6 +14,7 @@ class TelegramService {
 			if(this.bot) this.init = true;
 			else return false;
 			this.botname = botname;
+			this.leds = null;
 		}
 		
 	}
@@ -20,8 +23,8 @@ class TelegramService {
 		if(!this.init) return false;
 		this.modsAvaliables = this.getModsAvaliables();
 		this.cretateListeners();
-		
-		this.listenMessage()
+		this.onCallbackQuery();
+		// this.listenMessage();
 	}
 
 	cretateListeners(){
@@ -36,11 +39,20 @@ class TelegramService {
 				this.onText(regex, this[cbModCapitalize].bind(this));
 			}
 		}
+		this.onText(/^\/ping/ , this.cbPong.bind(this));
+		this.onText(/^\/houron(.+)/ , this.cbLedHourOn.bind(this));
+		this.onText(/^\/houroff(.+)/ , this.cbLedHourOff.bind(this));
+		this.onText(/^\/hourclear(.+)/ , this.cbLedHourClear.bind(this));
+		this.onText(/^\/servermonitor/ , this.cbServerMonitor.bind(this));
 
 	}
 	
-	sendMessage(chatId,resp,buttons){
-		this.bot.sendMessage(chatId, resp,buttons);
+	sendMessage(chatId,resp,buttons,parse_mode = "Markdown"){
+		this.bot.sendMessage(chatId, resp,
+			{
+				reply_markup: buttons, 
+				parse_mode : parse_mode
+			});
 	}
 
 	listenMessage(){
@@ -55,9 +67,146 @@ class TelegramService {
 		this.bot.onText(regex ,cb);
 	}
 
+	cbLed(msg,match){
+		let chatId = msg.chat.id;
+		let buttons = {			
+				inline_keyboard: [
+					[
+						{
+							text: 'Led Status',
+							callback_data: 'ledGetStatus'
+						},
+
+					],
+					[
+						{
+							text: 'Manual On',
+							callback_data: 'ledManualOn'
+						},
+						{
+							text: 'Manual Off',
+							callback_data: 'ledManualOff'
+						},
+					],
+					[
+						{
+							text: 'Hora de encendido',
+							callback_data: 'ledGetHourOn'
+						},
+						{
+							text: 'Hora de apagado',
+							callback_data: 'ledGetHourOff'
+						}
+					]
+				]
+			};
+		this.leds = RPiLeds;
+		this.sendMessage(chatId , "empezamos con los leds...",buttons);
+	}
+
+	async cbPong(msg,match){
+		console.log('pasa por pong');
+		
+		let isAdmin = await this.cbAdminMembers(msg);
+		if (!isAdmin) return false;
+		this.sendMessage(msg.chat.id , "Pong");
+
+
+	}
+	async cbLedHourOn(msg, match) {
+		let isAdmin = await this.cbAdminMembers(msg);
+		if (!isAdmin) return false;
+		let chatId = msg.chat.id;
+		let resp = match[1].trim();
+		let err = false;
+		let msgResp = '*No* se ha podido establecer la hora de encendido.\n';
+		let checkHour = false;
+		if (this.leds) {
+			let hon = this.leds.getHourOn();
+			checkHour = Helpers.checkFormatHour(resp);
+			
+			if (checkHour && hon !== resp){
+				this.leds.setHourOn(resp);
+				msgResp = "Se ha establecido la hora de inicio a las *" + this.leds.getHourOn(true) + "*";
+			}else err = true;
+		} else {
+			err = true;
+			msgResp += "*Motivo*: No se ha iniciado el módulo *Led*."
+		} 
+		if(err) {
+			msgResp += checkHour === null ? '*Motivo*: formato de hora incorrecta \"*' + resp + '*\"' : '';
+		}
+		this.sendMessage(chatId,msgResp);
+	}
+
+	async cbLedHourOff(msg, match) {
+		let isAdmin = await this.cbAdminMembers(msg);
+		if (!isAdmin) return false;
+		let chatId = msg.chat.id;
+		let resp = match[1].trim();
+		let err = false;
+		let checkHour = false;
+		let msgResp = '*No* se ha podido establecer la hora de apagado.\n';
+		if (this.leds) {
+			let hoff = this.leds.getHourOff();
+			checkHour = Helpers.checkFormatHour(resp);
+			if (checkHour && hoff !== resp) {
+				this.leds.setHourOff(resp);
+				msgResp = "Se ha establecido la hora de apagado a las *" + this.leds.getHourOff(true) + "*";
+
+			} else err = true; 
+		} else {
+			err = true;
+			msgResp += "*Motivo*: No se ha iniciado el módulo *Led*."
+		} 
+
+		if (err) {
+			msgResp += (checkHour === null ? '*Motivo*: formato de hora incorrecta \"*' + resp + '*\"' : '');
+		}
+		
+		this.sendMessage(chatId , msgResp);
+	}
+
+	cbLedHourClear(msg, match) {
+		let chatId = msg.chat.id;
+		let resp = match[1];
+		let msgResp = 'No se ha podido limpiar las horas.\n';
+		if (this.leds) {
+			this.leds.clearHours();
+			msgResp = "Se han limpiado las horas";
+		}
+		this.sendMessage(chatId,msgResp);
+	}
+
+	async cbServerMonitor(msg,match){
+		console.log('entra por servermonitor');
+		let isAdmin = await this.cbAdminMembers(msg);
+		if(!isAdmin) return false;
+
+		let chatId = msg.chat.id;
+		let resp = SystemStats();
+		
+		if(resp){
+			this.sendMessage(chatId,resp);
+		}
+	}
+	async cbAdminMembers(msg){
+		return await this.bot.getChatMember(msg.chat.id, msg.from.id).then((data) => {
+
+			if ((data.status == "creator") || (data.status == "administrator")) {
+				return true;
+			} else {
+				this.bot.sendMessage(msg.chat.id, "No eres admin, no puedes usar esta funcionalidad");
+				return false;
+			}
+		});
+	}
+
 	cbEcho(msg, match) {
-	  const chatId = msg.chat.id;
-	  const resp = match[1]; // the captured "whatever"
+	  let chatId = msg.chat.id;
+		let resp = match[1]; // the captured "whatever"
+		console.log('chad id:' ,chatId);
+		
 	  this.sendMessage(chatId, 'jurjur repito todo lo que dices \r\n' + resp);
 	}
 
@@ -67,7 +216,6 @@ class TelegramService {
 		let chatId = msg.chat.id;
 
 		let buttons = {
-					reply_markup: {
 						inline_keyboard: [
 							[
 								{
@@ -90,13 +238,67 @@ class TelegramService {
 								}
 							]
 						]
-					}
-		};
+					};
 
 		this.sendMessage(chatId, 'Esto lanza el motionCamera \r\n' ,buttons);
 	}
 
-	
+	onCallbackQuery(){
+		this.bot.on('callback_query', (callbackQuery,d) => {
+			// console.log(callbackQuery);
+			console.log(d);
+			
+			let action = callbackQuery.data;
+			let msg = callbackQuery.message;
+			let chatId = msg.chat.id;
+			let opts = {
+				chat_id: chatId,
+				message_id: msg.message_id,
+			};
+			let text = 'ssd';
+			let response = null;
+			if (action.startsWith('led')){
+				 response = this.handleLedActionButton(action,chatId);
+			}
+			// this.bot.editMessageText(text, opts);
+			if(response){
+				this.sendMessage(chatId, response);
+			}
+		});
+	}
+
+	handleLedActionButton(action,chatId){
+		switch (action) {
+			case 'ledGetStatus':
+				console.log('pasa por ledGetStatus');
+				console.log(this.leds.getStatusText());
+				return this.leds.getStatusText();
+				break;
+			case 'ledManualOn':
+				this.leds.setManual(true);
+				console.log('pasa por ledmanualon');
+				break;
+				case 'ledManualOff':
+				console.log('pasa por ledManualOff');
+				this.leds.setManual(false);
+				break;
+			case 'ledGetHourOn':
+			console.log('pasa por ledGetHourOn');
+				if(this.leds){
+					this.bot.sendMessage(chatId , this.leds.getHourOn(true) );
+				}
+				break;
+			case 'ledGetHourOff':
+			console.log('pasa por ledGetHourOff');
+				if (this.leds) {
+					this.bot.sendMessage(chatId, this.leds.getHourOff(true));
+				}
+				break;
+
+			default:
+				break;
+		}
+	}
 
 	getModsAvaliables(){
 		let constantName = 'AVAILABLE_MODS_BOT_' + this.botname.toUpperCase();

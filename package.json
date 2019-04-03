@@ -6,10 +6,24 @@
   "scripts": {
     "start": "node index.js"
   },
+  "motion": {
+    "capture_folder": "/home/pack/.motion/output",
+    "video_format": "avi",
+    "picture_format": "jpg",
+    "cams": [
+      {
+        "label": "cam 1",
+        "output_folder": "/cam1"
+      }
+    ]
+  },
   "author": "kiviev@gmail.com",
   "license": "ISC",
   "dependencies": {
+    "chokidar": "2.1.5",
     "dotenv": "7.0.0",
-    "node-telegram-bot-api": "0.30.0"
+    "fs-extra": "7.0.1",
+    "node-telegram-bot-api": "0.30.0",
+    "os-utils": "0.0.14"
   }
 }
