@@ -32,6 +32,9 @@ module.exports = {
     checkFormatHour: (str) => {
       let regex = new RegExp("^([01]?[0-9]|2[0-3]):[0-5][0-9]$");
       return str.match(regex);
+    },
+    objectSize : (obj) => {
+        return Object.keys(obj).length;
     }
 
 

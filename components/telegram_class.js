@@ -42,6 +42,7 @@ class TelegramService {
 		this.onText(/^\/ping/ , this.cbPong.bind(this));
 		this.onText(/^\/houron(.+)/ , this.cbLedHourOn.bind(this));
 		this.onText(/^\/houroff(.+)/ , this.cbLedHourOff.bind(this));
+		this.onText(/^\/hourbooth(.+)/ , this.cbLedHourBooth.bind(this));
 		this.onText(/^\/hourclear(.+)/ , this.cbLedHourClear.bind(this));
 		this.onText(/^\/servermonitor/ , this.cbServerMonitor.bind(this));
 
@@ -97,11 +98,18 @@ class TelegramService {
 							text: 'Hora de apagado',
 							callback_data: 'ledGetHourOff'
 						}
-					]
+					],
+					[
+						{
+							text: 'Iniciar Horas programadas',
+							callback_data: 'ledInitSchedule'
+						},
+
+					],
 				]
 			};
 		this.leds = RPiLeds;
-		this.sendMessage(chatId , "empezamos con los leds...",buttons);
+		this.sendMessage(chatId , "Se ha inicializado el módulo led...",buttons);
 	}
 
 	async cbPong(msg,match){
@@ -177,6 +185,28 @@ class TelegramService {
 		}
 		this.sendMessage(chatId,msgResp);
 	}
+	
+	cbLedHourBooth(msg,match){
+		let chatId = msg.chat.id;
+		let resp = match[1].trim();
+		let msgResp = 'No se ha podido setear ambas horas.\n';
+		if (this.leds /* && !(this.leds.hourOn && this.leds.hourOff) */) {
+			let horas = resp.split(' ');
+			console.log('horassssssss;' , horas);
+			if(horas.length && horas.length == 2){
+				let compare = Helpers.compareTime(horas[1], horas[0]);
+				if(compare == 1){
+					this.leds.setHourOn(horas[0]);
+					this.leds.setHourOff(horas[1]);
+					// this.leds.ledInitSchedule();
+					msgResp = `Se han establecido las horas correctamente \n-Encendido: *${this.leds.getHourOn(true)}* \n-Apagado: *${this.leds.getHourOff(true)}*`;
+				}else{
+					msgResp += "Las horas no son correctas."
+				}
+			}
+		}
+		this.sendMessage(chatId, msgResp);
+	}
 
 	async cbServerMonitor(msg,match){
 		console.log('entra por servermonitor');
@@ -189,6 +219,7 @@ class TelegramService {
 		if(resp){
 			this.sendMessage(chatId,resp);
 		}
+		
 	}
 	async cbAdminMembers(msg){
 		return await this.bot.getChatMember(msg.chat.id, msg.from.id).then((data) => {
@@ -277,24 +308,29 @@ class TelegramService {
 			case 'ledManualOn':
 				this.leds.setManual(true);
 				console.log('pasa por ledmanualon');
+				this.sendMessage(chatId,'Se ha encendido manualmente la luz-')
 				break;
 				case 'ledManualOff':
 				console.log('pasa por ledManualOff');
 				this.leds.setManual(false);
+				this.sendMessage(chatId,'Se ha apagado manualmente la luz-')
+
 				break;
 			case 'ledGetHourOn':
-			console.log('pasa por ledGetHourOn');
+				console.log('pasa por ledGetHourOn');
 				if(this.leds){
 					this.bot.sendMessage(chatId , this.leds.getHourOn(true) );
 				}
 				break;
 			case 'ledGetHourOff':
-			console.log('pasa por ledGetHourOff');
-				if (this.leds) {
-					this.bot.sendMessage(chatId, this.leds.getHourOff(true));
-				}
+			if (this.leds) {
+				this.bot.sendMessage(chatId, this.leds.getHourOff(true));
+			}
+			break;
+			case 'ledInitSchedule':
+				console.log('pasa por ledInitSchedule');
+				this.leds.ledInitSchedule()
 				break;
-
 			default:
 				break;
 		}
@@ -305,6 +341,14 @@ class TelegramService {
 		let modsToBot = process.env[constantName];
 		if(!modsToBot) return false;
 		return Helpers.envToArray(constantName);
+	}
+
+	setMessages(){
+		this.messages = {
+			leds : {
+
+			}
+		}
 	}
 }
 

@@ -1,0 +1,7 @@
+
+-- comandos
+led - Comienza el uso del modulo de leds de la Raspberry Pi.
+servermonitor - Monitoriza el estado del servidor.
+# houron - Establece hora de encendido del modulo led.
+# houroff - Establece hora de apagado del modulo led.
+# hourclear - Elimina horas del modulo led.
