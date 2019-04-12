@@ -1,7 +1,9 @@
 const TelegramBot = require('node-telegram-bot-api');
 const Helpers = require('../helpers');
-const RPiLeds = require('../mods/leds/RPiLeds');
+// const RPiLeds = require('../mods/leds/RPiLeds');
 const SystemStats = require('../mods/system/System');
+
+
 
 
 class TelegramService {
@@ -15,37 +17,55 @@ class TelegramService {
 			else return false;
 			this.botname = botname;
 			this.leds = null;
+			this.modules = [];
 		}
 		
 	}
 	
 	initBot(){
 		if(!this.init) return false;
-		this.modsAvaliables = this.getModsAvaliables();
+		this.pollingError();
+		this.modsEnabled = this.getModsEnabled();
+		this.chargeModules();
 		this.cretateListeners();
 		this.onCallbackQuery();
 		// this.listenMessage();
 	}
+	pollingError(){
+		this.bot.on('polling_error', (error) => {
+			console.error(error); 
+		});
+	}
 
 	cretateListeners(){
-		if(!this.modsAvaliables || !Array.isArray(this.modsAvaliables)) return false;
-
-		for(let i in this.modsAvaliables){
-			let mod = this.modsAvaliables[i].trim();
-			let regex = new RegExp("/" + mod + "(.+)?");
-			let cbModCapitalize = 'cb' + Helpers.capitalize(this.modsAvaliables[i]);
-			
-			if (typeof this[cbModCapitalize] == 'function'){
-				this.onText(regex, this[cbModCapitalize].bind(this));
-			}
-		}
-		this.onText(/^\/ping/ , this.cbPong.bind(this));
 		this.onText(/^\/houron(.+)/ , this.cbLedHourOn.bind(this));
 		this.onText(/^\/houroff(.+)/ , this.cbLedHourOff.bind(this));
 		this.onText(/^\/hourbooth(.+)/ , this.cbLedHourBooth.bind(this));
 		this.onText(/^\/hourclear(.+)/ , this.cbLedHourClear.bind(this));
-		this.onText(/^\/servermonitor/ , this.cbServerMonitor.bind(this));
+	}
 
+	chargeModules(){
+		if (!this.modsEnabled || !Array.isArray(this.modsEnabled) || !this.modsEnabled.length) return false;
+		for(let i in this.modsEnabled){
+			this.chargeModule(this.modsEnabled[i]);
+		}
+	}
+
+	chargeModule(name){
+		if( typeof name !== 'string' && name == '' ) return false;
+		try {
+			let Mod = require('../mods/' + name + '/' + name + 'Mod');
+			if (Mod) {
+				this.modules[name] = new Mod(this.bot);
+				if (this.modules[name]){
+					this.modules[name].init();
+				}
+			}
+			
+		} catch (error) {
+			console.error('No ha sido posible  cargar el modulo ' + name);
+			console.error(error);
+		}
 	}
 	
 	sendMessage(chatId,resp,buttons,parse_mode = "Markdown"){
@@ -112,15 +132,6 @@ class TelegramService {
 		this.sendMessage(chatId , "Se ha inicializado el módulo led...",buttons);
 	}
 
-	async cbPong(msg,match){
-		console.log('pasa por pong');
-		
-		let isAdmin = await this.cbAdminMembers(msg);
-		if (!isAdmin) return false;
-		this.sendMessage(msg.chat.id , "Pong");
-
-
-	}
 	async cbLedHourOn(msg, match) {
 		let isAdmin = await this.cbAdminMembers(msg);
 		if (!isAdmin) return false;
@@ -208,19 +219,6 @@ class TelegramService {
 		this.sendMessage(chatId, msgResp);
 	}
 
-	async cbServerMonitor(msg,match){
-		console.log('entra por servermonitor');
-		let isAdmin = await this.cbAdminMembers(msg);
-		if(!isAdmin) return false;
-
-		let chatId = msg.chat.id;
-		let resp = SystemStats();
-		
-		if(resp){
-			this.sendMessage(chatId,resp);
-		}
-		
-	}
 	async cbAdminMembers(msg){
 		return await this.bot.getChatMember(msg.chat.id, msg.from.id).then((data) => {
 
@@ -231,14 +229,6 @@ class TelegramService {
 				return false;
 			}
 		});
-	}
-
-	cbEcho(msg, match) {
-	  let chatId = msg.chat.id;
-		let resp = match[1]; // the captured "whatever"
-		console.log('chad id:' ,chatId);
-		
-	  this.sendMessage(chatId, 'jurjur repito todo lo que dices \r\n' + resp);
 	}
 
 	// To Do mover esto a una nueva clase que gestione todo lo que tenga que ver con el modulo
@@ -286,7 +276,7 @@ class TelegramService {
 				chat_id: chatId,
 				message_id: msg.message_id,
 			};
-			let text = 'ssd';
+			
 			let response = null;
 			if (action.startsWith('led')){
 				 response = this.handleLedActionButton(action,chatId);
@@ -336,20 +326,13 @@ class TelegramService {
 		}
 	}
 
-	getModsAvaliables(){
+	getModsEnabled(){
 		let constantName = 'AVAILABLE_MODS_BOT_' + this.botname.toUpperCase();
 		let modsToBot = process.env[constantName];
 		if(!modsToBot) return false;
 		return Helpers.envToArray(constantName);
 	}
 
-	setMessages(){
-		this.messages = {
-			leds : {
-
-			}
-		}
-	}
 }
 
 
