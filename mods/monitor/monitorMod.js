@@ -2,19 +2,19 @@ const Module = require('../Module');
 const SystemStats = require('../system/System');
 
 
-class serverMonitorModule extends Module {
+class MonitorModule extends Module {
 
     constructor(bot) {
-        super(bot, 'servermonitor');
+        super(bot, 'monitor');
     }
 
     cretateListeners() {
         let regex = new RegExp("/" + this._name + "(.+)?");
-        this._onText(regex, this.cbServerMonitor.bind(this));
+        this._onText(regex, this.cbMonitor.bind(this));
         
     }
 
-    async cbServerMonitor(msg, match) {
+    async cbMonitor(msg, match) {
         let isAdmin = await this._isAdmin(msg);
         if (!isAdmin) return false;
 
@@ -28,4 +28,4 @@ class serverMonitorModule extends Module {
     }
 }
 
-module.exports = serverMonitorModule; 
+module.exports = MonitorModule; 

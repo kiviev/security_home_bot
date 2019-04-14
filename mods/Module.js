@@ -67,6 +67,10 @@ class Module {
         });
     }
 
+    handleActionButton(action, chatId){
+        return false;
+    }
+
 
 }
 

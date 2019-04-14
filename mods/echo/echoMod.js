@@ -31,6 +31,11 @@ class EchoModule extends Module{
         console.log('chad id:', chatId);        
         this._sendMessage(chatId, 'jurjur repito todo lo que dices\n' + resp);
     }
+
+    handleActionButton(action, chatId){
+        console.log('action: ' , action , 'chatid: ', chatId);
+        
+    }
 }
 
 module.exports = EchoModule; 
