@@ -35,6 +35,7 @@
     "fs-extra": "7.0.1",
     "node-telegram-bot-api": "0.30.0",
     "npmi": "4.0.0",
-    "os-utils": "0.0.14"
+    "os-utils": "0.0.14",
+    "puppeteer": "1.14.0"
   }
 }
