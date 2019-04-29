@@ -11,7 +11,7 @@ class MonitorModule extends Module {
     cretateListeners() {
         let regex = new RegExp("/" + this._name + "(.+)?");
         this._onText(regex, this.cbMonitor.bind(this));
-        
+
     }
 
     async cbMonitor(msg, match) {
@@ -28,4 +28,4 @@ class MonitorModule extends Module {
     }
 }
 
-module.exports = MonitorModule; 
+module.exports = MonitorModule;

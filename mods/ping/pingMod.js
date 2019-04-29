@@ -19,4 +19,4 @@ class PingModule extends Module {
     }
 }
 
-module.exports = PingModule; 
+module.exports = PingModule;

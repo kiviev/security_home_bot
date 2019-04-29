@@ -7,10 +7,10 @@ const Pupp = require('./PuppeteerPack');
     // console.log(p);
     await p.init();
     // console.log(p);
-    
+
     let result = await p.getResults();
     console.log(result);
 
     await p.close();
-    
+
 })()

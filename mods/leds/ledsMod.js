@@ -192,4 +192,4 @@ class LedsModule extends Module {
 
 }
 
-module.exports = LedsModule; 
+module.exports = LedsModule;

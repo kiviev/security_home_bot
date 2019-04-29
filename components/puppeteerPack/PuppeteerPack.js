@@ -34,7 +34,7 @@ class PuppeteerPack {
 
     async launch(){
         console.log('xxxxxxx' ,this.headless);
-        
+
         this.browser = await this.pup.launch({
             headless: false,
             // devtools : false,
@@ -50,13 +50,13 @@ class PuppeteerPack {
     }
 
     async goToUrl(){
-        if(this.page && this.url){            
+        if(this.page && this.url){
             await this.page.goto(this.url);
         }else return false;
     }
     async setLogs(){
         if(!this.page) return false;
-        this.page.on('console', consoleObj => console.log(consoleObj.text()));            
+        this.page.on('console', consoleObj => console.log(consoleObj.text()));
 
     }
 
@@ -86,11 +86,11 @@ class PuppeteerPack {
             let dataFinal = {};
             for(let i in data){
                 dataFinal[i] = data[i].innerHTML;
-            }           
+            }
             return dataFinal;
-            
+
         }, this.resultTable);
-        
+
         let finalData = Helpers.getAbonoResultData(result)
         return finalData;
     }
@@ -113,7 +113,7 @@ module.exports = PuppeteerPack
 //     const url = process.env.ABONO_URL;
 //     console.log(url);
 //     if (!url) browser.close();
-    
+
 //     await page.goto(url);
 //     await page.screenshot({ path: __dirname + '/screenshots/abono.png' });
 

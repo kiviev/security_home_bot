@@ -76,11 +76,11 @@ class MotionModule extends Module {
             case 'motion_Camera2Capture':
                 this.motion_Camera2Capture(chatId);
                 break;
-        
+
             default:
                 break;
         }
     }
 }
 
-module.exports = MotionModule; 
+module.exports = MotionModule;

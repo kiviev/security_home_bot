@@ -28,14 +28,14 @@ class EchoModule extends Module{
     cbEcho(msg, match) {
         let chatId = msg.chat.id;
         let resp = match[1]; // the captured "whatever"
-        console.log('chad id:', chatId);        
+        console.log('chad id:', chatId);
         this._sendMessage(chatId, 'jurjur repito todo lo que dices\n' + resp);
     }
 
     handleActionButton(action, chatId){
         console.log('action: ' , action , 'chatid: ', chatId);
-        
+
     }
 }
 
-module.exports = EchoModule; 
+module.exports = EchoModule;

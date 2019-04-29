@@ -40,7 +40,7 @@ let method = 'POST';
 //     console.log("resultado de request error: " ,error);
 //     // console.log("resultado de request response: " ,response);
 //     // console.log("resultado de request body: " ,body);
-    
+
 // })
 
 
@@ -113,11 +113,11 @@ console.log(image_path);
 }
 
 async function sendText(text, chatid = "148400127") {
-  
+
         let formData = {
           chat_id: chatid
         }
-       
+
         if (text) {
           formData.text = text;
         }
@@ -151,7 +151,7 @@ function getOptions(type){
         case 'msg':
             part = 'sendMessage';
             break;
-    
+
         default:
             break;
     }
@@ -167,7 +167,7 @@ function getOptions(type){
     }
 }
 async function send(type,options){
-    
+
     return new Promise((resolve, reject) => {
         request.post(options, (error, response, body) => {
         if (error) reject(error);

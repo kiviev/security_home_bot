@@ -5,7 +5,7 @@ const Helpers = require('../helpers');
 
 
 class TelegramService {
-	
+
 	constructor(botname = '') {
 		if (process.env['TG_TOKEN_BOT_' + botname.toUpperCase()]) {
 			this.bot = new TelegramBot(process.env['TG_TOKEN_BOT_' + botname.toUpperCase()], {
@@ -17,9 +17,9 @@ class TelegramService {
 			this.leds = null;
 			this.modules = [];
 		}
-		
+
 	}
-	
+
 	initBot(){
 		if(!this.init) return false;
 		this.pollingError();
@@ -30,14 +30,14 @@ class TelegramService {
 	}
 	pollingError(){
 		this.bot.on('polling_error', (error) => {
-			console.error(error); 
+			console.error(error);
 		});
 	}
-	
+
 	cretateListeners(){
 		return false;
 	}
-	
+
 	chargeModules(){
 		this.modsEnabled = this.getModsEnabled();
 		if (!this.modsEnabled || !Array.isArray(this.modsEnabled) || !this.modsEnabled.length) return false;
@@ -56,17 +56,16 @@ class TelegramService {
 					this.modules[name].init();
 				}
 			}
-			
 		} catch (error) {
 			console.error('No ha sido posible  cargar el modulo ' + name);
 			console.error(error);
 		}
 	}
-	
+
 	sendMessage(chatId,resp,buttons,parse_mode = "Markdown"){
 		this.bot.sendMessage(chatId, resp,
 			{
-				reply_markup: buttons, 
+				reply_markup: buttons,
 				parse_mode : parse_mode
 			});
 	}
@@ -97,7 +96,7 @@ class TelegramService {
 
 
 	onCallbackQuery(){
-		this.bot.on('callback_query', (callbackQuery) => {			
+		this.bot.on('callback_query', (callbackQuery) => {
 			let action = callbackQuery.data;
 			let msg = callbackQuery.message;
 			let chatId = msg.chat.id;

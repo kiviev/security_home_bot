@@ -16,13 +16,13 @@ class CylonConfig {
         }
         return this;
     }
-    
+
     init(){
         this.config();
         this.setEvents();
         this.robot.start();
         this.luz = this.robot['luz'];
-           
+
         return this;
     }
 
@@ -42,7 +42,7 @@ class CylonConfig {
         // console.log(my);
         // my['luz'].turnOn();
         // my.turnOn();
-        
+
     }
 
     getConections(){
@@ -85,22 +85,22 @@ class CylonConfig {
         this.robot.on('halt', this.onHalt.bind(this));
         this.robot.on('error' , this.onError.bind(this));
     }
-    
+
     onReady(bot){
         console.log('Cylon Onready');
         // // this.robot['luz'].turnOn()
         // console.log(this.robot['luz'].details)
         // // bot['luz'].turnOn()
-        
+
     }
 
     onError(error){
         console.error('Cylon ERROR' ,error);
     }
-    
+
     onHalt(e){
         console.log('Cylon se está cerrando',e);
-        
+
     }
 
 }

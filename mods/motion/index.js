@@ -21,7 +21,7 @@ console.log(folder + cams[0].output_folder);
 async function send(){
     let x = await sendTG.sendVideo('/home/pack/.motion/output/cam1/13-20190330193619.mp4', '', 'holita que va el video juas juas');
     console.log('resultado' , x);
-    
+
 }
 
 send()

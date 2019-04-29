@@ -1,7 +1,7 @@
 const Helpers = require('../../helpers');
 const Cylon = require('./Cylon');
 
-    
+
 class RPiLeds {
     constructor(){
         if (!RPiLeds.instance){
@@ -37,14 +37,14 @@ class RPiLeds {
 
     ledInitSchedule(){
         console.log('pasa por Rpileds ledInitSchedule', this.hourOn, this.hourOff);
-        
+
         if (this.hourOn && this.hourOff) {
             console.log('pasa por Rpileds ledInitSchedule 1, this.checkHour', this.checkHours());
             if(this.checkHours() == 1){
                 console.log('pasa por Rpileds ledInitSchedule 2');
                 this.intervalSchedule = setInterval(() => {
                     console.log('pasa por Rpileds ledInitSchedule interval');
-                    
+
                     let active = this.ledScheduleIsActive();
                     console.log('pasa por Rpileds ledInitSchedule interval active: ' , active);
                     if (active && !this.schedule){
@@ -55,11 +55,11 @@ class RPiLeds {
                             this.schedule = false;
                             this.cylon.luzOff();
                             // clearInterval(this.intervalSchedule);
-                        } 
+                        }
                     }
                 }, 1000);
             }
-          
+
             // TODO encendier si hour on es menor que hour off y si la hora de verdad esta entre las dos
         } else {
             // this.manual = false;
@@ -89,7 +89,7 @@ class RPiLeds {
 
     setManual(status){
         this.luzManual(status)
-        this.on = this.luzStatus();   
+        this.on = this.luzStatus();
         this.manual = status;
     }
 
@@ -153,7 +153,7 @@ class RPiLeds {
     }
     __toString(){
         // console.log(this.cylon);
-        
+
         return ` *Estado del led*
 - Encendido Manual: ${this.manual ? "*Encendido*" : "Apagado"}
 - Hora de encendido:   ${this.getHourOn(true)}

@@ -1,7 +1,7 @@
 const isPi = require('detect-rpi');
 const npmi = require('npmi');
 const path = require('path');
-/** 
+/**
  * Dependencias necesarias para el modulo led (solo funcionan en RPi)
  *  "cylon": "1.3.0",
     "cylon-gpio": "0.30.1",

@@ -44,10 +44,10 @@ module.exports = {
         };
         if(split.length && split.length == 2){
             obj.select = split[0];
-            obj.input = split[1]  
+            obj.input = split[1]
         }
         return obj;
-        
+
     },
     getAbonoResultData(data){
         let finalData = {};
