@@ -1,6 +1,7 @@
 require('dotenv').config({ path: '.env' });
 const puppeteer = require('puppeteer');
 const Helpers = require('../../helpers');
+const isPi = require('detect-rpi');
 
 
 
@@ -34,12 +35,17 @@ class PuppeteerPack {
 
     async launch(){
         console.log('xxxxxxx' ,this.headless);
-
-        this.browser = await this.pup.launch({
+        let options = {
             headless: false,
             // devtools : false,
             ignoreHTTPSErrors: true,
-        });
+        };
+        if(isPi()){
+            options.headless = true;
+            options.executablePath = '/usr/bin/chromium-browser';
+        }
+
+        this.browser = await this.pup.launch(options);
     }
     async getPage(){
         if(this.browser){

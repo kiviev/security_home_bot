@@ -1,6 +1,8 @@
 const isPi = require('detect-rpi');
+const commandExists = require('command-exists');
 const npmi = require('npmi');
 const path = require('path');
+const mngr = require('system-installer').installer;
 /**
  * Dependencias necesarias para el modulo led (solo funcionan en RPi)
  *  "cylon": "1.3.0",
@@ -52,13 +54,17 @@ const packagesRPI = [ // array
     }
 ];
 
+console.log(process.platform);
 
 
 if(isPi()){
     installPackages(packagesRPI);
+
 }else{
     console.error("Hay paquetes que no se pueden instalar. No es una Raspberry Pi.");
 }
+// si no está instalado chrominium lo instalamos, dependencia de puppeter headless
+installChrominium();
 
 function installPackages(packages) {
     if(!Array.isArray(packages)) return false;
@@ -78,4 +84,24 @@ function installPackage(options) {
         // installed
         console.log(options.name + '@' + options.version + ' installed successfully in ' + path.resolve(options.path));
     });
+}
+
+async function installChrominium(){
+    commandExists('chromium-browser -v')
+        .then(function (command) {
+            console.log(command + " ya esta instalado");
+            // proceed
+        }).catch(function () {
+            // command doesn't exist
+            console.log('no funciona');
+            mngr('chromium-browser')
+                .then(function (data) {
+                    // returns installation output
+                    console.log(data);
+                    console.log('Se ha instalado Chrominium');
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        });
 }
